@@ -1,6 +1,7 @@
 class Player
 	DANGER_HEALTH = 7
 	MIN_HEALTH = 15
+	MAX_LOOK = 4
 	def play_turn(warrior)
 		# setup
 		@last_health ||= warrior.health
@@ -8,7 +9,9 @@ class Player
 		@direction ||= :forward
 		# warrior possible actions
 		if warrior.feel(@direction).empty?
-			if should_flee? warrior
+			if clear_shot? warrior
+				warrior.shoot!(@direction)
+			elsif should_flee? warrior
 				@direction = :backward
 				warrior.walk! @direction
 			elsif should_rest? warrior
@@ -35,5 +38,12 @@ class Player
 	def should_flee?(warrior)
 		bad_health = warrior.health < DANGER_HEALTH
 		@took_damage && bad_health
+	end
+	def clear_shot? warrior
+		look = warrior.look @direction
+		distance_to_enemy = look.index { |space| space.enemy? == true } || MAX_LOOK
+		distance_to_captive = look.index { |space| space.captive? == true } || MAX_LOOK
+		distance_to_enemy < distance_to_captive
+		
 	end
 end
