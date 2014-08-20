@@ -1,6 +1,6 @@
 class Player
-	DANGER_HEALTH = 7
-	MIN_HEALTH = 15
+	DANGER_HEALTH = 15
+	MIN_HEALTH = 20
 	MAX_LOOK = 4
 	def play_turn(warrior)
 		# setup
@@ -39,11 +39,16 @@ class Player
 		bad_health = warrior.health < DANGER_HEALTH
 		@took_damage && bad_health
 	end
+	# Defines if you can shoot in any direction without killing captives
 	def clear_shot? warrior
-		look = warrior.look @direction
+		look = warrior.look :forward
+		distance_to_enemy2 = look.index { |space| space.enemy? == true } || MAX_LOOK
+		distance_to_captive2 = look.index { |space| space.captive? == true } || MAX_LOOK
+		@direction = :forward if distance_to_enemy2 < distance_to_captive2
+		look = warrior.look :backward
 		distance_to_enemy = look.index { |space| space.enemy? == true } || MAX_LOOK
 		distance_to_captive = look.index { |space| space.captive? == true } || MAX_LOOK
-		distance_to_enemy < distance_to_captive
-		
+		@direction = :backward if distance_to_enemy < distance_to_captive
+		!@took_damage && ((distance_to_enemy < distance_to_captive) || (distance_to_enemy2 < distance_to_captive2)) 
 	end
 end
